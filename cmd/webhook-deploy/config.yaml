@@ -1,0 +1,4 @@
+secret: ""
+deployments:
+  JDinABox/github-webhook-deploy:
+    - "go build ./cmd/webhook-deploy"

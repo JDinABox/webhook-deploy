@@ -1,9 +1,35 @@
 package githubwebhookdeploy
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
 
 type Config struct {
 	listen string
+	app    *AppConfig
+}
+type AppConfig struct {
+	Secret      string              `yaml:"secret"`
+	Deployments map[string][]string `yaml:"deployments"`
+}
+
+func loadConfig(configPath string) (*AppConfig, error) {
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	var config AppConfig
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config data: %w", err)
+	}
+
+	return &config, nil
 }
 
 type Option func(*Config) error
@@ -13,6 +39,13 @@ func WithListenAddr(addr string) Option {
 	return func(c *Config) error {
 		c.listen = addr
 		return nil
+	}
+}
+func WithConfigFile(path string) Option {
+	return func(c *Config) error {
+		appConf, err := loadConfig(path)
+		c.app = appConf
+		return err
 	}
 }
 
@@ -41,7 +74,7 @@ func Start(opts ...Option) error {
 	}
 
 	// Initialize HTTP router
-	router := newApp()
+	router := newApp(conf.app)
 
 	// Start HTTP server
 	server := &http.Server{

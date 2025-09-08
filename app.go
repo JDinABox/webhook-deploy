@@ -1,6 +1,10 @@
 package githubwebhookdeploy
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -9,8 +13,14 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+type Push struct {
+	Repository struct {
+		FullName string `json:"full_name"`
+	} `json:"repository"`
+}
+
 // newApp init fiber app
-func newApp() *chi.Mux {
+func newApp(conf *AppConfig) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
@@ -18,13 +28,37 @@ func newApp() *chi.Mux {
 	r.Use(middleware.CleanPath)
 
 	r.Post("/webhook/push", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%v\n", r.Header)
-		var j map[string]any
-		json.NewDecoder(r.Body).Decode(&j)
+		if r.Header.Get("X-GitHub-Event") != "push" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		var buf bytes.Buffer
+		buf.ReadFrom(r.Body)
 		defer r.Body.Close()
-		js, _ := json.Marshal(j)
-		log.Printf("%v\n", string(js))
-		w.WriteHeader(http.StatusOK)
+
+		body := buf.Bytes()
+
+		h := hmac.New(sha256.New, []byte(conf.Secret))
+		h.Write(body)
+
+		webSig := r.Header.Get("X-Hub-Signature-256")
+
+		if !hmac.Equal([]byte("sha256="+hex.EncodeToString(h.Sum(nil))), []byte(webSig)) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		var p Push
+		json.Unmarshal(body, &p)
+
+		deployments, ok := conf.Deployments[p.Repository.FullName]
+		if !ok {
+			w.WriteHeader(http.StatusNotImplemented)
+			return
+		}
+
+		log.Printf("%+v\n", deployments)
+		w.WriteHeader(http.StatusNoContent)
 	})
 
 	// 404 error

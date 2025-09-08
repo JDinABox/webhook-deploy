@@ -16,5 +16,15 @@ func main() {
 	if listenAddr := strings.TrimSpace(os.Getenv("LISTEN")); listenAddr != "" {
 		configs = append(configs, webhookdeploy.WithListenAddr(listenAddr))
 	}
+
+	var configPath string
+
+	if len(os.Args) < 2 {
+		log.Fatal("Missing configuration file input")
+	}
+	configPath = strings.TrimSpace(os.Args[1])
+
+	configs = append(configs, webhookdeploy.WithConfigFile(configPath))
+
 	log.Fatal(webhookdeploy.Start(configs...))
 }
