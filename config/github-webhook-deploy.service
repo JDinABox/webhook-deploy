@@ -1,0 +1,26 @@
+[Unit]
+Description=GitHub Webhook Deploy Service
+Documentation=https://github.com/JDinABox/github-webhook-deploy
+After=network.target
+
+[Service]
+Type=simple
+User=github-webhook-deploy
+Group=github-webhook-deploy
+WorkingDirectory=/etc/github-webhook-deploy
+Environment=LISTEN=0.0.0.0:8080
+ExecStart=/usr/local/bin/github-webhook-deploy /etc/github-webhook-deploy/config.yaml
+Restart=always
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=github-webhook-deploy
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
