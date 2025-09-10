@@ -17,12 +17,13 @@ func main() {
 		configs = append(configs, webhookdeploy.WithListenAddr(listenAddr))
 	}
 
-	var configPath string
+	configPath := "/etc/github-webhook-deploy/config.yaml"
 
 	if len(os.Args) < 2 {
-		log.Fatal("Missing configuration file input")
+		log.Println("Warning: Missing configuration file input")
+	} else {
+		configPath = strings.TrimSpace(os.Args[1])
 	}
-	configPath = strings.TrimSpace(os.Args[1])
 
 	configs = append(configs, webhookdeploy.WithConfigFile(configPath))
 

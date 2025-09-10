@@ -20,7 +20,7 @@ type Push struct {
 }
 
 // newApp init fiber app
-func newApp(conf *AppConfig) *chi.Mux {
+func newApp(conf *Config) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
