@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os/exec"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -39,7 +41,16 @@ func newApp(conf *Config) *chi.Mux {
 
 		body := buf.Bytes()
 
-		h := hmac.New(sha256.New, []byte(conf.Secret))
+		var p Push
+		json.Unmarshal(body, &p)
+
+		deployment, ok := conf.Deployments[p.Repository.FullName]
+		if !ok {
+			w.WriteHeader(http.StatusNotImplemented)
+			return
+		}
+
+		h := hmac.New(sha256.New, []byte(deployment.Secret))
 		h.Write(body)
 
 		webSig := r.Header.Get("X-Hub-Signature-256")
@@ -48,16 +59,23 @@ func newApp(conf *Config) *chi.Mux {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		var p Push
-		json.Unmarshal(body, &p)
 
-		deployments, ok := conf.Deployments[p.Repository.FullName]
-		if !ok {
-			w.WriteHeader(http.StatusNotImplemented)
-			return
+		log.Printf("[%s] Deploying...\n", p.Repository.FullName)
+		start := time.Now()
+
+		// Normal deployment logic
+		for _, command := range deployment.Commands {
+			cmd := exec.Command("sh", "-c", command)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				log.Printf("Error running deployment command: %s\n%s", err, output)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 		}
 
-		log.Printf("%+v\n", deployments)
+		log.Printf("[%s] Deployment complete [%.2fs]\n", p.Repository.FullName, time.Since(start).Seconds())
+
 		w.WriteHeader(http.StatusNoContent)
 	})
 

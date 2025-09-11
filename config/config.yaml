@@ -1,5 +1,6 @@
 listen: ":8080"
-secret: ""
 deployments:
   JDinABox/github-webhook-deploy:
-    - "go build ./cmd/webhook-deploy"
+    secret: ""
+    commands:
+      - "go build ./cmd/webhook-deploy"
