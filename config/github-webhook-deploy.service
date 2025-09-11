@@ -8,7 +8,6 @@ Type=simple
 User=github-webhook-deploy
 Group=github-webhook-deploy
 WorkingDirectory=/etc/github-webhook-deploy
-Environment=LISTEN=:8080
 ExecStart=/usr/local/bin/github-webhook-deploy /etc/github-webhook-deploy/config.yaml
 Restart=on-failure
 RestartSec=10
@@ -16,11 +15,11 @@ StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=github-webhook-deploy
 
-# Security settings
+# Security settings program may access home to deploy
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
+ProtectSystem=full
+ProtectHome=false
 
 [Install]
 WantedBy=multi-user.target

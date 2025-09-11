@@ -11,7 +11,7 @@ import (
 )
 
 type Config struct {
-	Listen      string
+	Listen      string              `yaml:"listen,omitempty"`
 	Secret      string              `yaml:"secret"`
 	Deployments map[string][]string `yaml:"deployments"`
 }
@@ -31,13 +31,6 @@ func loadConfig(config *Config, configPath string) error {
 
 type Option func(*Config) error
 
-// WithListenAddr sets the server's listen address
-func WithListenAddr(addr string) Option {
-	return func(c *Config) error {
-		c.Listen = addr
-		return nil
-	}
-}
 func WithConfigFile(path string) Option {
 	return func(c *Config) error {
 		return loadConfig(c, path)

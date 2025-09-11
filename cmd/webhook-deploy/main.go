@@ -13,10 +13,6 @@ import (
 func main() {
 	configs := []webhookdeploy.Option{}
 
-	if listenAddr := strings.TrimSpace(os.Getenv("LISTEN")); listenAddr != "" {
-		configs = append(configs, webhookdeploy.WithListenAddr(listenAddr))
-	}
-
 	configPath := "/etc/github-webhook-deploy/config.yaml"
 
 	if len(os.Args) < 2 {
