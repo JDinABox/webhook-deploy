@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os/exec"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -19,6 +20,28 @@ type Push struct {
 	Repository struct {
 		FullName string `json:"full_name"`
 	} `json:"repository"`
+}
+
+type guidChecker struct {
+	mux   sync.Mutex
+	guids map[string]bool
+}
+
+func (g *guidChecker) Add(guid string) {
+	g.mux.Lock()
+	g.guids[guid] = true
+	g.mux.Unlock()
+}
+func (g *guidChecker) Exists(guid string) bool {
+	g.mux.Lock()
+	defer g.mux.Unlock()
+	return g.guids[guid]
+}
+
+var guidCheck guidChecker
+
+func init() {
+	guidCheck = guidChecker{guids: make(map[string]bool)}
 }
 
 // newApp init fiber app
@@ -60,21 +83,29 @@ func newApp(conf *Config) *chi.Mux {
 			return
 		}
 
-		log.Printf("[%s] Deploying...\n", p.Repository.FullName)
-		start := time.Now()
-
-		// Normal deployment logic
-		for _, command := range deployment.Commands {
-			cmd := exec.Command("sh", "-c", command)
-			output, err := cmd.CombinedOutput()
-			if err != nil {
-				log.Printf("Error running deployment command: %s\n%s", err, output)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+		guid := r.Header.Get("X-GitHub-Delivery")
+		if guid == "" || guidCheck.Exists(guid) {
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
 		}
+		guidCheck.Add(guid)
 
-		log.Printf("[%s] Deployment complete [%.2fs]\n", p.Repository.FullName, time.Since(start).Seconds())
+		log.Printf("[%s] Received valid webhook\n", p.Repository.FullName)
+
+		go func(name, guid string, commands []string) {
+			log.Printf("[%s] Deploying...\n", name)
+			start := time.Now()
+
+			for _, command := range commands {
+				cmd := exec.Command("sh", "-c", command)
+				output, err := cmd.CombinedOutput()
+				if err != nil {
+					log.Printf("Error running deployment command: %s\n%s", err, output)
+					return
+				}
+			}
+			log.Printf("[%s] Deployment complete [%.2fs]\n", name, time.Since(start).Seconds())
+		}(p.Repository.FullName, guid, deployment.Commands)
 
 		w.WriteHeader(http.StatusNoContent)
 	})

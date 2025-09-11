@@ -10,12 +10,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type Deployments struct {
+	Secret   string   `yaml:"secret"`
+	Commands []string `yaml:"commands"`
+}
+
 type Config struct {
-	Listen      string `yaml:"listen,omitempty"`
-	Deployments map[string]struct {
-		Secret   string   `yaml:"secret"`
-		Commands []string `yaml:"commands"`
-	} `yaml:"deployments"`
+	Listen      string                 `yaml:"listen,omitempty"`
+	Deployments map[string]Deployments `yaml:"deployments"`
 }
 
 func loadConfig(config *Config, configPath string) error {
