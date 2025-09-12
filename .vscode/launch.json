@@ -9,7 +9,7 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/cmd/webhook-deploy",
+      "program": "${workspaceFolder}/cmd/github-webhook-deploy",
       "args": ["${workspaceFolder}/config/config.yaml"]
     }
   ]
