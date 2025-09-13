@@ -101,6 +101,7 @@ func newApp(conf *Config) *chi.Mux {
 				output, err := cmd.CombinedOutput()
 				if err != nil {
 					log.Printf("Error running deployment command: %s\n%s", err, output)
+					log.Printf("[%s] Deployment Failed [%.2fs]\n", name, time.Since(start).Seconds())
 					return
 				}
 			}
