@@ -5,7 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
+	"encoding/json/v2"
 	"log"
 	"net/http"
 	"os/exec"
@@ -114,11 +114,10 @@ func newApp(conf *Config) *chi.Mux {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(
-			map[string]any{
-				"error":     "404",
-				"not-found": r.URL.String(),
-			})
+		json.MarshalWrite(w, map[string]any{
+			"error":     "404",
+			"not-found": r.URL.String(),
+		})
 	})
 
 	return r

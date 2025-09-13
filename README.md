@@ -1,2 +1,3 @@
 # github-webhook-deploy
-A small program to deploy applications when a request comes in
+
+A webhook server to automatically deploy GitHub repositories

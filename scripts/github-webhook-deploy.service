@@ -5,10 +5,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=github-webhook-deploy
-Group=github-webhook-deploy
 WorkingDirectory=/etc/github-webhook-deploy
-ExecStart=/usr/local/bin/github-webhook-deploy /etc/github-webhook-deploy/config.yaml
+ExecStart=/usr/bin/github-webhook-deploy /etc/github-webhook-deploy/config.yaml
 Restart=on-failure
 RestartSec=10
 StandardOutput=syslog

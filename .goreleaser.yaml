@@ -1,0 +1,112 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+
+builds:
+  - main: ./cmd/github-webhook-deploy/
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - formats: [tar.gz]
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+nfpms:
+  - id: github-webhook-deploy-deb-rpm
+    package_name: github-webhook-deploy
+    maintainer: "JDinABox <git@jdinabox.com>"
+    description: "A webhook server to automatically deploy GitHub repositories."
+    homepage: "https://github.com/JDinABox/github-webhook-deploy"
+    license: "MIT"
+    formats:
+      - rpm
+      - deb
+    bindir: /usr/bin
+    contents:
+      - src: ./scripts/github-webhook-deploy.service
+        dst: /etc/systemd/system/github-webhook-deploy.service
+        file_info:
+          mode: 0644
+      - src: ./config/config.yaml
+        dst: /etc/github-webhook-deploy/config.yaml
+        type: config
+      - dst: /var/log/github-webhook-deploy
+        type: dir
+        file_info:
+          mode: 0755
+          owner: github-webhook-deploy
+          group: github-webhook-deploy
+    scripts:
+      preinstall: "scripts/preinstall.sh"
+      postinstall: "scripts/postinstall.sh"
+      preremove: "scripts/preremove.sh"
+      postremove: "scripts/postremove.sh"
+  - id: github-webhook-deploy-apk
+    package_name: github-webhook-deploy
+    maintainer: "JDinABox <git@jdinabox.com>"
+    description: "A webhook server to automatically deploy GitHub repositories."
+    homepage: "https://github.com/JDinABox/github-webhook-deploy"
+    license: "MIT"
+    formats:
+      - apk
+    bindir: /usr/bin
+    contents:
+      - src: ./scripts/github-webhook-deploy.openrc
+        dst: /etc/init.d/github-webhook-deploy
+        file_info:
+          mode: 0755
+      - src: ./config/config.yaml
+        dst: /etc/github-webhook-deploy/config.yaml
+        type: config
+      - dst: /var/log/github-webhook-deploy
+        type: dir
+        file_info:
+          mode: 0755
+          owner: github-webhook-deploy
+          group: github-webhook-deploy
+    scripts:
+      preinstall: "scripts/preinstall.sh"
+      postinstall: "scripts/postinstall.sh"
+      preremove: "scripts/preremove.sh"
+      postremove: "scripts/postremove.sh"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+release:
+  footer: >-
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
