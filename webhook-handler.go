@@ -52,22 +52,24 @@ func webhookHandler(conf Config) http.HandlerFunc {
 
 		requestLogger.Logf("[%s] Received valid webhook\n", p.Repository.FullName)
 
-		go func(name, guid string, commands []string) {
-			requestLogger.Logf("[%s] Deploying...\n", name)
-			start := time.Now()
-
-			for _, command := range commands {
-				cmd := exec.Command("sh", "-c", command)
-				output, err := cmd.CombinedOutput()
-				if err != nil {
-					requestLogger.Logf("Error running deployment command: %s\n%s", err, output)
-					requestLogger.Logf("[%s] Deployment Failed [%.2fs]\n", name, time.Since(start).Seconds())
-					return
-				}
-			}
-			requestLogger.Logf("[%s] Deployment complete [%.2fs]\n", name, time.Since(start).Seconds())
-		}(p.Repository.FullName, guid, deployment.Commands)
+		go DeploymentRunner(p.Repository.FullName, deployment.Commands)
 
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+func DeploymentRunner(name string, commands []string) {
+	requestLogger.Logf("[%s] Deploying...\n", name)
+	start := time.Now()
+
+	for _, command := range commands {
+		cmd := exec.Command("sh", "-c", command)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			requestLogger.Logf("Error running deployment command: %s\n%s", err, output)
+			requestLogger.Logf("[%s] Deployment Failed [%.2fs]\n", name, time.Since(start).Seconds())
+			return
+		}
+	}
+	requestLogger.Logf("[%s] Deployment complete [%.2fs]\n", name, time.Since(start).Seconds())
 }

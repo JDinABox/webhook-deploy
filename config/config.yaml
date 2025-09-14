@@ -1,4 +1,9 @@
 listen: ":8080"
+web-interface:
+  enabled: false
+  listen: ":9080"
+  username: "admin"
+  password: "password"
 deployments:
   JDinABox/github-webhook-deploy:
     secret: ""

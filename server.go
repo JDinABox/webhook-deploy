@@ -14,10 +14,15 @@ type Deployments struct {
 	Secret   string   `yaml:"secret"`
 	Commands []string `yaml:"commands"`
 }
-
+type WebInterface struct {
+	Enabled  bool   `yaml:"enabled"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
 type Config struct {
-	Listen      string                 `yaml:"listen,omitempty"`
-	Deployments map[string]Deployments `yaml:"deployments"`
+	Listen       string                 `yaml:"listen,omitempty"`
+	WebInterface WebInterface           `yaml:"web-interface,omitempty"`
+	Deployments  map[string]Deployments `yaml:"deployments"`
 }
 
 func loadConfig(config *Config, configPath string) error {
@@ -46,6 +51,11 @@ func NewConfig(opts ...Option) (*Config, error) {
 	// Set defaults
 	cfg := &Config{
 		Listen: "127.0.0.1:8080",
+		WebInterface: WebInterface{
+			Enabled:  false,
+			Username: "",
+			Password: "",
+		},
 	}
 
 	// Apply options
