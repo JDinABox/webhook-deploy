@@ -44,3 +44,14 @@ func (r *requestLog) Logf(format string, v ...any) {
 	r.logs = append(r.logs, rLog{time: now, message: msg})
 	r.mux.Unlock()
 }
+
+// GetLogs returns the stored log messages
+func (r *requestLog) GetLogs() []string {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+	var allLogs []string
+	for _, l := range r.logs {
+		allLogs = append(allLogs, fmt.Sprintf("%s: %s", l.time.Format("2006-01-02 15:04:05"), l.message))
+	}
+	return allLogs
+}

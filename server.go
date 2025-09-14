@@ -1,11 +1,15 @@
 package githubwebhookdeploy
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -16,6 +20,7 @@ type Deployments struct {
 }
 type WebInterface struct {
 	Enabled  bool   `yaml:"enabled"`
+	Listen   string `yaml:"listen,omitempty"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
@@ -53,6 +58,7 @@ func NewConfig(opts ...Option) (*Config, error) {
 		Listen: "127.0.0.1:8080",
 		WebInterface: WebInterface{
 			Enabled:  false,
+			Listen:   "127.0.0.1:9080",
 			Username: "",
 			Password: "",
 		},
@@ -76,13 +82,66 @@ func Start(opts ...Option) error {
 	}
 
 	// Initialize HTTP router
-	router := newApp(conf)
+	router, webInterface := newApp(conf)
 
-	// Start HTTP server
+	// Channel to listen for errors from either server
+	serverErrChan := make(chan error, 1)
+
+	// Start webhook server
 	server := &http.Server{
 		Addr:    conf.Listen,
 		Handler: router,
 	}
+	go func() {
+		log.Printf("Webhook server listening on %s", conf.Listen)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			serverErrChan <- fmt.Errorf("Webhook error: %w", err)
+		}
+	}()
 
-	return server.ListenAndServe()
+	// Start web interface server if enabled
+	var webServer *http.Server
+	if conf.WebInterface.Enabled {
+		webServer = &http.Server{
+			Addr:    conf.WebInterface.Listen,
+			Handler: webInterface,
+		}
+		go func() {
+			log.Printf("Web interface server listening on %s", conf.WebInterface.Listen)
+			if err := webServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				serverErrChan <- fmt.Errorf("Web interface error: %w", err)
+			}
+		}()
+	}
+
+	// Wait for a shutdown signal or a server error
+	quitChan := make(chan os.Signal, 1)
+	signal.Notify(quitChan, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case err := <-serverErrChan:
+		log.Printf("A server has failed: %v", err)
+	case sig := <-quitChan:
+		log.Printf("Received signal %v. Shutting down...", sig)
+	}
+
+	// Create a context with a timeout for shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Shutdown the servers
+	log.Println("Shutting down webhook server...")
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("Webhook server shutdown failed: %v", err)
+	}
+
+	if webServer != nil {
+		log.Println("Shutting down web interface server...")
+		if err := webServer.Shutdown(ctx); err != nil {
+			log.Printf("Web interface server shutdown failed: %v", err)
+		}
+	}
+
+	log.Println("Shutdown complete.")
+	return nil
 }
