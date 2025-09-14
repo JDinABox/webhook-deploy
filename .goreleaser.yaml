@@ -17,6 +17,7 @@ builds:
   - main: ./cmd/github-webhook-deploy/
     env:
       - CGO_ENABLED=0
+      - GOEXPERIMENT=jsonv2
     goos:
       - linux
     goarch:
@@ -61,13 +62,11 @@ nfpms:
         type: dir
         file_info:
           mode: 0755
-          owner: github-webhook-deploy
-          group: github-webhook-deploy
     scripts:
-      preinstall: "scripts/preinstall.sh"
-      postinstall: "scripts/postinstall.sh"
-      preremove: "scripts/preremove.sh"
-      postremove: "scripts/postremove.sh"
+      preinstall: "./scripts/preinstall.sh"
+      postinstall: "./scripts/postinstall.sh"
+      preremove: "./scripts/preremove.sh"
+      postremove: "./scripts/postremove.sh"
   - id: github-webhook-deploy-apk
     package_name: github-webhook-deploy
     maintainer: "JDinABox <git@jdinabox.com>"
@@ -89,13 +88,11 @@ nfpms:
         type: dir
         file_info:
           mode: 0755
-          owner: github-webhook-deploy
-          group: github-webhook-deploy
     scripts:
-      preinstall: "scripts/preinstall.sh"
-      postinstall: "scripts/postinstall.sh"
-      preremove: "scripts/preremove.sh"
-      postremove: "scripts/postremove.sh"
+      preinstall: "./scripts/preinstall.sh"
+      postinstall: "./scripts/postinstall.sh"
+      preremove: "./scripts/preremove.sh"
+      postremove: "./scripts/postremove.sh"
 
 changelog:
   sort: asc
