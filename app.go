@@ -8,12 +8,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type Push struct {
-	Repository struct {
-		FullName string `json:"full_name"`
-	} `json:"repository"`
-}
-
 // newApp init fiber app
 func newApp(conf *Config) (*chi.Mux, *chi.Mux) {
 	r := chi.NewRouter()

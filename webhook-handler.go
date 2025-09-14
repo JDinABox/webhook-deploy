@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+type Push struct {
+	Repository struct {
+		FullName string `json:"full_name"`
+	} `json:"repository"`
+}
+
 func webhookHandler(conf Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-GitHub-Event") != "push" {
@@ -27,8 +33,11 @@ func webhookHandler(conf Config) http.HandlerFunc {
 		var p Push
 		json.Unmarshal(body, &p)
 
+		requestLogger.Logf("[%s] Received webhook request\n", p.Repository.FullName)
+
 		deployment, ok := conf.Deployments[p.Repository.FullName]
 		if !ok {
+			requestLogger.Logf("[%s] Request not implemented\n", p.Repository.FullName)
 			w.WriteHeader(http.StatusNotImplemented)
 			return
 		}
@@ -39,12 +48,14 @@ func webhookHandler(conf Config) http.HandlerFunc {
 		webSig := r.Header.Get("X-Hub-Signature-256")
 
 		if !hmac.Equal([]byte("sha256="+hex.EncodeToString(h.Sum(nil))), []byte(webSig)) {
+			requestLogger.Logf("[%s] Invalid signature\n", p.Repository.FullName)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		guid := r.Header.Get("X-GitHub-Delivery")
 		if guid == "" || requestLogger.GUIDExists(guid) {
+			requestLogger.Logf("[%s] GUID already used\n", p.Repository.FullName)
 			w.WriteHeader(http.StatusTooManyRequests)
 			return
 		}
