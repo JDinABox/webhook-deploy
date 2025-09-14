@@ -58,6 +58,8 @@ nfpms:
       - src: ./config/config.yaml
         dst: /etc/github-webhook-deploy/config.yaml
         type: config
+        file_info:
+          mode: 0644
       - dst: /var/log/github-webhook-deploy
         type: dir
         file_info:

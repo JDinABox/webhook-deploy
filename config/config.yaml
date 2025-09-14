@@ -1,7 +1,7 @@
 listen: ":8080"
 web-interface:
-  enabled: false
-  listen: ":9080"
+  enabled: true
+  listen: "127.0.0.1:9080"
   username: "admin"
   password: "password"
 deployments:

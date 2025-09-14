@@ -5,4 +5,4 @@ if [ ! -d /etc/github-webhook-deploy ]; then
 fi
 
 chown -R root:root /etc/github-webhook-deploy
-chmod -R 774 /etc/github-webhook-deploy
+chmod -R 644 /etc/github-webhook-deploy
