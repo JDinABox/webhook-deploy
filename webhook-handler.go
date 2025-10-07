@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json/v2"
 	"net/http"
-	"os/exec"
 	"time"
 )
 
@@ -63,21 +62,25 @@ func webhookHandler(conf Config) http.HandlerFunc {
 
 		requestLogger.Logf("[%s] Received valid webhook\n", p.Repository.FullName)
 
-		go DeploymentRunner(p.Repository.FullName, deployment.Commands)
+		go DeploymentRunner(p.Repository.FullName, deployment, conf.KnowHosts)
 
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
-func DeploymentRunner(name string, commands []string) {
+func DeploymentRunner(name string, deployment Deployments, knownHost string) {
 	requestLogger.Logf("[%s] Deploying...\n", name)
 	start := time.Now()
 
-	for _, command := range commands {
-		cmd := exec.Command("sh", "-c", command)
-		output, err := cmd.CombinedOutput()
+	sshClient, err := NewSSHClient(&deployment.Remote, knownHost)
+	if err != nil {
+		requestLogger.Logf("Error creating SSH client: %v\n", err)
+	}
+
+	for _, command := range deployment.Commands {
+		stdout, stderr, err := sshClient.RunCommand(command)
 		if err != nil {
-			requestLogger.Logf("Error running deployment command: %s\n%s", err, output)
+			requestLogger.Logf("Error running deployment command: %s\nstdout: %s\n stderr: %s", err, stdout, stderr)
 			requestLogger.Logf("[%s] Deployment Failed [%.2fs]\n", name, time.Since(start).Seconds())
 			return
 		}

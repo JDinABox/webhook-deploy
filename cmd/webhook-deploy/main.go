@@ -5,7 +5,6 @@ package main
 import (
 	"log"
 	"os"
-	"strings"
 
 	webhookdeploy "github.com/JDinABox/webhook-deploy"
 )
@@ -15,10 +14,11 @@ func main() {
 
 	configPath := "/etc/webhook-deploy/config.yaml"
 
-	if len(os.Args) < 2 {
-		log.Println("Warning: Missing configuration file input using default /etc/webhook-deploy/config.yaml")
+	envConfigPath := os.Getenv("CONFIG")
+	if envConfigPath != "" {
+		configPath = envConfigPath
 	} else {
-		configPath = strings.TrimSpace(os.Args[1])
+		log.Println("Warn: Missing configuration file input. Using default /etc/webhook-deploy/config.yaml")
 	}
 
 	configs = append(configs, webhookdeploy.WithConfigFile(configPath))

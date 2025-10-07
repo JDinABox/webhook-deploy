@@ -81,7 +81,7 @@ func deployHandler(conf *Config) http.HandlerFunc {
 		}
 
 		requestLogger.Logf("[%s] Manual deployment initiated by web interface.", payload.Repository)
-		go DeploymentRunner(payload.Repository, deployment.Commands)
+		go DeploymentRunner(payload.Repository, deployment, conf.KnowHosts)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Deployment initiated successfully."))
 	}

@@ -1,4 +1,5 @@
 listen: ":8080"
+ssh-known-hosts: "./path/to/known_hosts"
 web-interface:
   enabled: true
   listen: "127.0.0.1:9080"
@@ -6,6 +7,10 @@ web-interface:
   password: "password"
 deployments:
   JDinABox/webhook-deploy:
+    remote:
+      user: "user"
+      server_ip: "127.0.0.1"
+      private_key: "./path/to/private/key"
     secret: ""
     commands:
       - "go build ./cmd/webhook-deploy"

@@ -16,8 +16,16 @@ import (
 
 type Deployments struct {
 	Secret   string   `yaml:"secret"`
+	Remote   Remote   `yaml:"remote"`
 	Commands []string `yaml:"commands"`
 }
+
+type Remote struct {
+	User       string `yaml:"user"`
+	ServerIP   string `yaml:"server_ip"`
+	PrivateKey string `yaml:"private_key"`
+}
+
 type WebInterface struct {
 	Enabled  bool   `yaml:"enabled"`
 	Listen   string `yaml:"listen,omitempty"`
@@ -26,6 +34,7 @@ type WebInterface struct {
 }
 type Config struct {
 	Listen       string                 `yaml:"listen,omitempty"`
+	KnowHosts    string                 `yaml:"ssh-known-hosts"`
 	WebInterface WebInterface           `yaml:"web-interface,omitempty"`
 	Deployments  map[string]Deployments `yaml:"deployments"`
 }
@@ -55,7 +64,8 @@ func WithConfigFile(path string) Option {
 func NewConfig(opts ...Option) (*Config, error) {
 	// Set defaults
 	cfg := &Config{
-		Listen: "127.0.0.1:8080",
+		Listen:    "127.0.0.1:8080",
+		KnowHosts: "/etc/webhook-deploy/known_hosts",
 		WebInterface: WebInterface{
 			Enabled:  false,
 			Listen:   "127.0.0.1:9080",
