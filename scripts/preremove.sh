@@ -1,8 +1,8 @@
 #!/bin/sh
 if [ -d /run/systemd/system ]; then
-    systemctl stop github-webhook-deploy.service
-    systemctl disable github-webhook-deploy.service
+    systemctl stop webhook-deploy.service
+    systemctl disable webhook-deploy.service
 elif [ -x /sbin/openrc-run ]; then
-    rc-service github-webhook-deploy stop
-    rc-update del github-webhook-deploy default
+    rc-service webhook-deploy stop
+    rc-update del webhook-deploy default
 fi

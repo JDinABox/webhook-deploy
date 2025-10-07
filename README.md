@@ -1,4 +1,4 @@
-# github-webhook-deploy
+# webhook-deploy
 
 A webhook server to automatically deploy GitHub repositories
 
@@ -9,7 +9,7 @@ A webhook server to automatically deploy GitHub repositories
 ### Running
 
 ```sh
-github-webhook-deploy path/to/config.yaml
+webhook-deploy path/to/config.yaml
 ```
 
 ### Endpoints
@@ -33,8 +33,8 @@ Supports builds for Linux
 [Install GoReleaser](https://goreleaser.com/install/)
 
 ```sh
-git clone https://github.com/JDinABox/github-webhook-deploy.git
-cd github-webhook-deploy
+git clone https://github.com/JDinABox/webhook-deploy.git
+cd webhook-deploy
 goreleaser release --clean --snapshot
 ```
 
@@ -43,9 +43,9 @@ Packages and binaries will be in the `dist` directory.
 ### With Go
 
 ```sh
-git clone https://github.com/JDinABox/github-webhook-deploy.git
-cd github-webhook-deploy
-GOEXPERIMENT=jsonv2 go build -o ./github-webhook-deploy ./cmd/github-webhook-deploy/
+git clone https://github.com/JDinABox/webhook-deploy.git
+cd webhook-deploy
+GOEXPERIMENT=jsonv2 go build -o ./webhook-deploy ./cmd/webhook-deploy/
 ```
 
 ### Rebuilding web interface assets (Optional: Included in repo)
@@ -64,23 +64,23 @@ Install package from `dist`
 
 Edit [Config](#config)
 
-Enable & Start `github-webhook-deploy` service
+Enable & Start `webhook-deploy` service
 
 ### Manual Installation
 
 1. Binary install
 
    ```sh
-   cp ./github-webhook-deploy /usr/bin/github-webhook-deploy
-   chmod 0755 /usr/bin/github-webhook-deploy
+   cp ./webhook-deploy /usr/bin/webhook-deploy
+   chmod 0755 /usr/bin/webhook-deploy
    ```
 
 2. Config install
 
    ```sh
-   mkdir -p /etc/github-webhook-deploy/
-   cp ./config/config.yaml /etc/github-webhook-deploy/config.yaml
-   chmod 0644 -R /etc/github-webhook-deploy
+   mkdir -p /etc/webhook-deploy/
+   cp ./config/config.yaml /etc/webhook-deploy/config.yaml
+   chmod 0644 -R /etc/webhook-deploy
    ```
 
    Edit [Config](#config)
@@ -88,17 +88,17 @@ Enable & Start `github-webhook-deploy` service
 3. Service setup (Systemd)
 
    ```sh
-   cp ./scripts/github-webhook-deploy.service /etc/systemd/system/github-webhook-deploy.service
-   chmod 0644 /etc/systemd/system/github-webhook-deploy.service
+   cp ./scripts/webhook-deploy.service /etc/systemd/system/webhook-deploy.service
+   chmod 0644 /etc/systemd/system/webhook-deploy.service
    systemctl daemon-reload
-   systemctl enable --now github-webhook-deploy
+   systemctl enable --now webhook-deploy
    ```
 
 ## Config
 
 See [`config/config.yaml`](./config/config.yaml)
 
-Installed at `/etc/github-webhook-deploy/config.yaml`
+Installed at `/etc/webhook-deploy/config.yaml`
 
 ```yaml
 listen: ":8080" # Public port to listen on
@@ -137,14 +137,14 @@ Tools:
 
 - Go 1.25+
   ```sh
-  GOEXPERIMENT=jsonv2 go run ./cmd/github-webhook-deploy/ ./config/config.yaml
+  GOEXPERIMENT=jsonv2 go run ./cmd/webhook-deploy/ ./config/config.yaml
   ```
 - [TailwindCSS CLI](https://tailwindcss.com/docs/installation/tailwind-cli) - Web interface styles
   ```sh
   tailwindcss -w -m -o ./templates/assets/output.css
   ```
 - [smee](https://github.com/probot/smee-client) (Optional but Recommended) - Webhook proxy
-  Start `github-webhook-deploy`
+  Start `webhook-deploy`
   ```sh
   smee --url https://smee.io/{URL} --path /webhook/push --port 8080
   ```

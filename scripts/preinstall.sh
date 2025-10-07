@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if [ ! -d /etc/github-webhook-deploy ]; then
-    mkdir -p /etc/github-webhook-deploy
+if [ ! -d /etc/webhook-deploy ]; then
+    mkdir -p /etc/webhook-deploy
 fi
 
-chown -R root:root /etc/github-webhook-deploy
-chmod -R 644 /etc/github-webhook-deploy
+chown -R root:root /etc/webhook-deploy
+chmod -R 644 /etc/webhook-deploy

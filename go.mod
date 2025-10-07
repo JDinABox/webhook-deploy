@@ -1,4 +1,4 @@
-module github.com/JDinABox/github-webhook-deploy
+module github.com/JDinABox/webhook-deploy
 
 go 1.25
 

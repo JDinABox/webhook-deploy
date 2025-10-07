@@ -1,17 +1,17 @@
 [Unit]
-Description=GitHub Webhook Deploy Service
-Documentation=https://github.com/JDinABox/github-webhook-deploy
+Description=Webhook Deploy Service
+Documentation=https://github.com/JDinABox/webhook-deploy
 After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/etc/github-webhook-deploy
-ExecStart=/usr/bin/github-webhook-deploy /etc/github-webhook-deploy/config.yaml
+WorkingDirectory=/etc/webhook-deploy
+ExecStart=/usr/bin/webhook-deploy /etc/webhook-deploy/config.yaml
 Restart=on-failure
 RestartSec=10
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=github-webhook-deploy
+SyslogIdentifier=webhook-deploy
 
 # Security settings program may access home to deploy
 NoNewPrivileges=true

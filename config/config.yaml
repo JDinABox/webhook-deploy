@@ -5,7 +5,7 @@ web-interface:
   username: "admin"
   password: "password"
 deployments:
-  JDinABox/github-webhook-deploy:
+  JDinABox/webhook-deploy:
     secret: ""
     commands:
       - "go build ./cmd/webhook-deploy"

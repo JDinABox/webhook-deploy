@@ -2,9 +2,9 @@
 
 supervisor=supervise-daemon
 
-name="github-webhook-deploy"
-command="/usr/bin/github-webhook-deploy"
-command_args="/etc/github-webhook-deploy/config.yaml"
+name="webhook-deploy"
+command="/usr/bin/webhook-deploy"
+command_args="/etc/webhook-deploy/config.yaml"
 pidfile="/run/${RC_SVCNAME}.pid"
 
 depend() {
@@ -12,18 +12,18 @@ depend() {
 }
 
 start() {
-    ebegin "Starting github-webhook-deploy"
+    ebegin "Starting webhook-deploy"
     supervise-daemon --start ${SV_START_OPTS} \
         --pidfile "${pidfile}" \
-        --stdout /var/log/github-webhook-deploy/stdout.log \
-        --stderr /var/log/github-webhook-deploy/stderr.log \
+        --stdout /var/log/webhook-deploy/stdout.log \
+        --stderr /var/log/webhook-deploy/stderr.log \
         ${name} -- ${command_args}
-    eend $? "Failed to start github-webhook-deploy"
+    eend $? "Failed to start webhook-deploy"
 }
 
 stop() {
-    ebegin "Stopping github-webhook-deploy"
+    ebegin "Stopping webhook-deploy"
     supervise-daemon --stop ${SV_STOP_OPTS} \
         --pidfile "${pidfile}"
-    eend $? "Failed to stop github-webhook-deploy"
+    eend $? "Failed to stop webhook-deploy"
 }
