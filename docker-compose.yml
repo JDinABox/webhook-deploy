@@ -1,0 +1,12 @@
+services:
+  webhook-deploy:
+    build: .
+    container_name: webhook-deploy
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data:/etc/webhook-deploy
+    environment:
+      LISTEN: ":80"
+      LOGGING: "false"
