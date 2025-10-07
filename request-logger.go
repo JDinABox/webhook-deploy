@@ -1,4 +1,4 @@
-package githubwebhookdeploy
+package webhookdeploy
 
 import (
 	"fmt"
