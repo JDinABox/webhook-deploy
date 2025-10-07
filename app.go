@@ -18,6 +18,16 @@ func newApp(conf *Config) (*chi.Mux, *chi.Mux) {
 
 	r.Post("/webhook/push", webhookHandler(*conf))
 
+	// 404 error
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.MarshalWrite(w, map[string]any{
+			"error":     "404",
+			"not-found": r.URL.String(),
+		})
+	})
+
 	var webInterface *chi.Mux
 	if conf.WebInterface.Enabled {
 		webInterface = chi.NewRouter()
@@ -37,16 +47,5 @@ func newApp(conf *Config) (*chi.Mux, *chi.Mux) {
 
 		})
 	}
-
-	// 404 error
-	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		json.MarshalWrite(w, map[string]any{
-			"error":     "404",
-			"not-found": r.URL.String(),
-		})
-	})
-
 	return r, webInterface
 }
