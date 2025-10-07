@@ -16,7 +16,7 @@ func main() {
 	configPath := "/etc/webhook-deploy/config.yaml"
 
 	if len(os.Args) < 2 {
-		log.Println("Warning: Missing configuration file input")
+		log.Println("Warning: Missing configuration file input using default /etc/webhook-deploy/config.yaml")
 	} else {
 		configPath = strings.TrimSpace(os.Args[1])
 	}
