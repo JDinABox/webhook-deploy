@@ -75,6 +75,8 @@ func DeploymentRunner(name string, deployment Deployments, knownHost string) {
 	sshClient, err := NewSSHClient(&deployment.Remote, knownHost)
 	if err != nil {
 		requestLogger.Logf("Error creating SSH client: %v\n", err)
+		requestLogger.Logf("[%s] Deployment Failed [%.2fs]\n", name, time.Since(start).Seconds())
+		return
 	}
 
 	for _, command := range deployment.Commands {

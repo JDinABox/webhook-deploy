@@ -1,0 +1,12 @@
+{
+  "name": "webhook-deploy",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "tailwindcss -m -o ./templates/assets/output.css",
+    "dev": "tailwindcss -w -m -o ./templates/assets/output.css"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.2.1",
+    "tailwindcss": "^4.2.1"
+  }
+}

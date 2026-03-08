@@ -2,6 +2,12 @@
 
 A webhook server to automatically deploy GitHub repositories
 
+## Features
+
+- **Automated Deployments**: Automatically deploy on GitHub push events
+- **Remote Deployments**: Use ssh keys to deploy to remote servers
+- **Web Interface**: Manually trigger deployments and view deployment logs
+
 ## Using
 
 [Config](#config)
@@ -67,11 +73,27 @@ GOEXPERIMENT=jsonv2 go build -o ./webhook-deploy ./cmd/webhook-deploy/
 
 ### Rebuilding web interface assets (Optional: Included in repo)
 
-[TailwindCSS CLI](https://tailwindcss.com/docs/installation/tailwind-cli)
+<details>
+
+<summary>TailwindCSS CLI</summary>
 
 ```sh
 tailwindcss -m -o ./templates/assets/output.css
 ```
+
+</details>
+
+<details>
+
+<summary>npm | Bun</summary>
+
+```sh
+npm run build
+
+bun run build
+```
+
+</details>
 
 ## Config
 
@@ -130,6 +152,8 @@ Tools:
 - [TailwindCSS CLI](https://tailwindcss.com/docs/installation/tailwind-cli) - Web interface styles
   ```sh
   tailwindcss -w -m -o ./templates/assets/output.css
+  # or
+  npm run dev
   ```
 - [smee](https://github.com/probot/smee-client) (Optional but Recommended) - Webhook proxy
   Start `webhook-deploy`

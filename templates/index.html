@@ -1,84 +1,166 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
   <head>
-    <title>Web Interface</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Webhook Deploy - Web Interface for managing deployments"
+    />
+    <title>Webhook Deploy</title>
     <link href="./assets/output.css" rel="stylesheet" />
   </head>
-  <body class="flex h-screen min-w-full bg-zinc-900 text-white">
-    <div class="max-w-5xl mx-auto grow flex flex-col">
-      <div class="flex justify-between items-center mt-4">
+
+  <body class="flex min-w-full h-screen text-white bg-zinc-900">
+    <div class="flex flex-col p-4 mx-auto max-w-5xl grow">
+      <!-- Header -->
+      <header class="flex justify-between items-center">
         <h1 class="text-2xl font-bold">Webhook Deploy</h1>
 
         {{ if ne .Username "" }}
-        <div>
-          Welcome, {{ .Username }}!
+        <div class="flex gap-4 items-center">
+          <span class="text-zinc-400">
+            Welcome, <span class="font-medium text-white">{{ .Username }}</span>
+          </span>
           <button
             onclick="logout()"
-            class="px-2 py-1 bg-red-900 hover:bg-red-700 rounded-md cursor-pointer"
+            class="py-1.5 px-3 rounded-md transition-colors cursor-pointer hover:bg-red-700 active:bg-red-600 bg-red-900/80"
+            aria-label="Logout"
           >
             Logout
           </button>
         </div>
         {{ end }}
-      </div>
+      </header>
 
-      <div class="p-4 mt-4 flex flex-col bg-zinc-800 rounded-md">
-        <h2 class="text-xl font-bold">Deployment Controls</h2>
-        <div class="flex mt-3">
+      <!-- Deployment Controls -->
+      <section
+        class="flex flex-col p-4 mt-6 rounded-lg border bg-zinc-800 border-zinc-700"
+      >
+        <h2 class="text-lg font-semibold">Deployment Controls</h2>
+        <div class="flex flex-wrap gap-3 items-center mt-3">
           <select
             id="deploymentSelector"
-            class="mr-2 border-1 border-neutral-500 bg-zinc-900 rounded-md px-2 py-1"
+            class="py-2 px-3 rounded-md border focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none border-zinc-600 bg-zinc-900 min-w-[200px]"
+            aria-label="Select deployment target"
           >
             {{ range $repoName, $deployment := .Deployments }}
             <option value="{{ $repoName }}">{{ $repoName }}</option>
             {{ end }}
           </select>
           <button
+            id="deployBtn"
             onclick="runDeployment()"
-            class="px-2 py-1 bg-blue-900 hover:bg-blue-700 rounded-md cursor-pointer"
+            class="py-2 px-4 font-medium bg-blue-700 rounded-md transition-colors cursor-pointer hover:bg-blue-600 active:bg-blue-500 disabled:cursor-not-allowed disabled:bg-zinc-600"
+            aria-label="Run selected deployment"
           >
-            Run Selected Deployment
+            <span id="deployText">Run Selected Deployment</span>
           </button>
         </div>
-      </div>
+      </section>
 
-      <div class="my-4 flex flex-col grow p-4 bg-zinc-800 rounded-md min-h-0">
-        <h2 class="text-xl font-bold">
-          Request Logs
-          <button
-            onclick="location.reload()"
-            class="ml-2 inline-block align-middle text-zinc-400 hover:text-white focus:outline-none"
+      <!-- Request Logs -->
+      <section
+        class="flex flex-col p-4 my-4 min-h-0 rounded-lg border grow bg-zinc-800 border-zinc-700"
+      >
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-semibold">Request Logs</h2>
+          <div class="flex gap-3 items-center">
+            <label
+              class="flex gap-2 items-center text-sm cursor-pointer text-zinc-400"
+            >
+              <input
+                type="checkbox"
+                id="autoRefresh"
+                class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-zinc-600 bg-zinc-700 focus:ring-offset-zinc-800"
+                onchange="toggleAutoRefresh()"
+              />
+              Auto-refresh
+            </label>
+            <button
+              onclick="refreshLogs()"
+              class="flex gap-1.5 items-center py-1.5 px-3 text-sm rounded-md transition-colors bg-zinc-700 hover:bg-zinc-600 active:bg-zinc-500"
+              aria-label="Refresh logs"
+              title="Refresh logs (Ctrl+R)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="size-5"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div
+          id="logsContainer"
+          class="overflow-auto p-3 font-mono text-sm rounded-md grow bg-zinc-950"
+          role="log"
+          aria-live="polite"
+          aria-atomic="false"
+        >
+          {{ if .Logs }} {{ range .Logs }}
+          <div
+            class="py-1 px-2 rounded transition-colors log-entry hover:bg-zinc-800/50"
           >
-            <!-- Icon Licensed under the MIT License (https://github.com/radix-ui/icons/blob/master/LICENSE). Copyright (c) 2022 WorkOS-->
+            {{ . }}
+          </div>
+          {{ end }} {{ else }}
+          <div
+            class="flex flex-col justify-center items-center h-full text-zinc-500"
+          >
             <svg
-              width="15"
-              height="15"
-              viewBox="0 0 15 15"
-              fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="mb-2 opacity-50 size-12"
             >
               <path
-                d="M1.84998 7.49998C1.84998 4.66458 4.05979 1.84998 7.49998 1.84998C10.2783 1.84998 11.6515 3.9064 12.2367 5H10.5C10.2239 5 10 5.22386 10 5.5C10 5.77614 10.2239 6 10.5 6H13.5C13.7761 6 14 5.77614 14 5.5V2.5C14 2.22386 13.7761 2 13.5 2C13.2239 2 13 2.22386 13 2.5V4.31318C12.2955 3.07126 10.6659 0.849976 7.49998 0.849976C3.43716 0.849976 0.849976 4.18537 0.849976 7.49998C0.849976 10.8146 3.43716 14.15 7.49998 14.15C9.44382 14.15 11.0622 13.3808 12.2145 12.2084C12.8315 11.5806 13.3133 10.839 13.6418 10.0407C13.7469 9.78536 13.6251 9.49315 13.3698 9.38806C13.1144 9.28296 12.8222 9.40478 12.7171 9.66014C12.4363 10.3425 12.0251 10.9745 11.5013 11.5074C10.5295 12.4963 9.16504 13.15 7.49998 13.15C4.05979 13.15 1.84998 10.3354 1.84998 7.49998Z"
-                fill="currentColor"
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                data-darkreader-inline-fill=""
-                style="--darkreader-inline-fill: currentColor"
-              ></path>
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+              />
             </svg>
-          </button>
-        </h2>
-        <div
-          class="p-3 grow bg-neutral-900 rounded-md flex flex-col mt-3 overflow-auto"
-        >
-          {{ range .Logs }}
-          <div>{{ . }}</div>
-          {{ else }} No logs available. {{ end }}
+            <p>No logs available yet.</p>
+            <p class="mt-1 text-xs">
+              Logs will appear here when deployments are triggered.
+            </p>
+          </div>
+          {{ end }}
         </div>
-      </div>
+      </section>
     </div>
 
     <script>
+      const LS_AR = "autoRefresh";
+      const AUTO_REFRESH_TIME_INT = 2500;
+      let autoRefreshInterval = null;
+      function toggleAutoRefresh() {
+        if (document.getElementById("autoRefresh").checked) {
+          localStorage.setItem(LS_AR, "true");
+          autoRefreshInterval = setInterval(refreshLogs, AUTO_REFRESH_TIME_INT);
+          return;
+        }
+        localStorage.setItem(LS_AR, "false");
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+      }
+
+      function refreshLogs() {
+        location.reload();
+      }
+
       async function runDeployment() {
         const selector = document.getElementById("deploymentSelector");
         const repoName = selector.value;
@@ -88,17 +170,32 @@
         }
 
         if (confirm(`Are you sure you want to deploy ${repoName}?`)) {
-          console.log(`Attempting to deploy: ${repoName}`);
-          const response = await fetch("/deploy", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ repository: repoName }),
-          });
-          const text = await response.text();
-          alert(text);
-          location.reload();
+          const btn = document.getElementById("deployBtn");
+          const text = document.getElementById("deployText");
+
+          btn.disabled = true;
+          text.textContent = "Deploying...";
+
+          try {
+            console.log(`Attempting to deploy: ${repoName}`);
+            const response = await fetch("/deploy", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ repository: repoName }),
+            });
+            const text = await response.text();
+
+            alert(text);
+            location.reload();
+          } catch (error) {
+            alert("Deployment request failed: " + error.message);
+            // Reset button state
+            btn.disabled = false;
+            text.textContent =
+              "Run Selected Deployment";
+          }
         }
       }
 
@@ -113,6 +210,41 @@
           alert("Logout failed.");
         }
       }
+
+      function styleLogEntries() {
+        document.querySelectorAll(".log-entry").forEach((entry) => {
+          const text = entry.textContent.toLowerCase();
+          if (text.includes("error") || text.includes("failed")) {
+            entry.classList.add("text-red-400");
+          } else if (text.includes("success") || text.includes("complete")) {
+            entry.classList.add("text-green-400");
+          } else if (text.includes("warning")) {
+            entry.classList.add("text-yellow-400");
+          } else if (text.includes("deploying")) {
+            entry.classList.add("text-blue-400");
+          }
+        });
+      }
+
+      function scrollToBottom() {
+        const container = document.getElementById("logsContainer");
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }
+
+      function autoRefreshPersist() {
+        if ((localStorage.getItem(LS_AR) || "") == "true") {
+          document.getElementById("autoRefresh").checked = true;
+          autoRefreshInterval = setInterval(refreshLogs, AUTO_REFRESH_TIME_INT);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        styleLogEntries();
+        autoRefreshPersist();
+        scrollToBottom();
+      });
     </script>
   </body>
 </html>

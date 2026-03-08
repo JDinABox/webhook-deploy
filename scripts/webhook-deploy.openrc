@@ -1,0 +1,19 @@
+#!/sbin/openrc-run
+
+supervisor=supervise-daemon
+
+name="webhook-deploy"
+command="/usr/bin/webhook-deploy"
+command_args="/etc/webhook-deploy/config.yaml"
+pidfile="/run/webhook-deploy/webhook-deploy.pid"
+command_background="yes"
+output_log="/var/log/webhook-deploy/webhook-deploy.log"
+error_log="/var/log/webhook-deploy/webhook-deploy.err"
+depend() {
+        need net
+}
+
+start_pre() {
+        checkpath --directory --owner $command_user:$command_user --mode 0775 \
+                /run/webhook-deploy /var/log/webhook-deploy
+}
